@@ -1,5 +1,7 @@
 package il.ac.tau.cs.software1.bigram;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -78,10 +80,44 @@ public class BigramModel {
      * @post: mVocabulary = prev(mVocabulary)
      * @post: mBigramCounts = prev(mBigramCounts)
      */
-    public String[] buildVocabularyIndex(String fileName) throws IOException { // Question 1
-        // TODO: implement
-        return null;
+
+    private static int indexOf(String[] arr, int count, String word) {
+        for (int i = 0; i < count; i++) {
+            if (arr[i].equals(word)) {
+                return i;
+            }
+        }
+        return ELEMENT_NOT_FOUND;
     }
+    
+    public String[] buildVocabularyIndex(String fileName) throws IOException { // Question 1
+        String[] buffer = new String[MAX_VOCABULARY_SIZE];
+        int count = 0;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] tokens = line.trim().split("\\s+");
+                for (String token : tokens) {
+                    String word = normalizeWord(token);
+                    if (word == null) {
+                        continue;
+                    }
+                    if (indexOf(buffer, count, word) == ELEMENT_NOT_FOUND) {
+                        buffer[count++] = word;
+                    if (count == MAX_VOCABULARY_SIZE) {
+                        return buffer;
+                    }
+                    }
+        }
+    }
+
+        String[] vocabulary = new String[count];
+        System.arraycopy(buffer, 0, vocabulary, 0, count);
+        return vocabulary;
+        }
+    }
+
 
     /*
      * @post: mVocabulary = prev(mVocabulary)
