@@ -163,7 +163,6 @@ public class BigramModel {
             }
         }
 
-        // ---- file 2: the counts ----
         try (BufferedWriter counts = new BufferedWriter(new FileWriter(fileName + COUNTS_FILE_SUFFIX))) {
             for (int i = 0; i < mBigramCounts.length; i++) {
                 for (int j = 0; j < mBigramCounts[i].length; j++) {
@@ -180,7 +179,34 @@ public class BigramModel {
      * @pre: fileName is a legal file path
      */
     public void loadModel(String fileName) throws IOException { // Question 4
-        // TODO: implement
+        String[] vocabulary;
+        try (BufferedReader voc = new BufferedReader(new FileReader(fileName + VOC_FILE_SUFFIX))) {
+            String first = voc.readLine();
+            int size = Integer.parseInt(first.split(" ")[0]);
+            vocabulary = new String[size];
+            for (int k = 0; k < size; k++) {
+                String line = voc.readLine();
+                int comma = line.indexOf(',');
+                int index = Integer.parseInt(line.substring(0, comma));
+                vocabulary[index] = line.substring(comma + 1);
+            }
+        }
+
+        int n = vocabulary.length;
+        int[][] counts = new int[n][n];
+        try (BufferedReader cnt = new BufferedReader(new FileReader(fileName + COUNTS_FILE_SUFFIX))) {
+            String line;
+            while ((line = cnt.readLine()) != null) {
+                int comma = line.indexOf(',');
+                int colon = line.indexOf(':');
+                int i = Integer.parseInt(line.substring(0, comma));
+                int j = Integer.parseInt(line.substring(comma + 1, colon));
+                counts[i][j] = Integer.parseInt(line.substring(colon + 1));
+            }
+        }
+
+        mVocabulary = vocabulary;
+        mBigramCounts = counts;
     }
 
     /*
@@ -194,8 +220,19 @@ public class BigramModel {
      * $ret = false
      */
     public boolean isLegalSentence(String sentence) { // Question 5
-        // TODO: implement
-        return false;
+        if (sentence.isEmpty()) {
+            return true;
+        }
+        String[] words = sentence.split(" ");
+        if (words.length == 1) {
+            return getWordIndex(words[0]) != ELEMENT_NOT_FOUND;
+        }
+        for (int k = 0; k < words.length - 1; k++) {
+            if (getBigramCount(words[k], words[k + 1]) == 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     //////////////////////////////////////////////////////////////////////
