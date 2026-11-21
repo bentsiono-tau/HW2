@@ -21,16 +21,16 @@ public class BigramModel {
         mBigramCounts = buildCountsArray(fileName, mVocabulary);
     }
 
-    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     // Helper methods - already implemented for you. Use them!
-    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
 
     /*
      * Converts a single token (a whitespace-free piece of text from the file)
      * into the form in which it is stored in the vocabulary:
-     *   - a token with at least one English letter  -> the token in lowercase
-     *   - a token made only of digits (an integer)  -> SOME_NUM
-     *   - anything else is not a legal word         -> null
+     * - a token with at least one English letter -> the token in lowercase
+     * - a token made only of digits (an integer) -> SOME_NUM
+     * - anything else is not a legal word -> null
      *
      * @pre: token != null
      */
@@ -57,6 +57,7 @@ public class BigramModel {
 
     /*
      * @pre: vocabulary != null
+     * 
      * @post: $ret = the index of word in vocabulary, or ELEMENT_NOT_FOUND if
      * word is null or does not appear in it
      */
@@ -72,12 +73,13 @@ public class BigramModel {
         return ELEMENT_NOT_FOUND;
     }
 
-    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     // Questions 1 - 5: implement these
-    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
 
     /*
      * @post: mVocabulary = prev(mVocabulary)
+     * 
      * @post: mBigramCounts = prev(mBigramCounts)
      */
 
@@ -89,7 +91,7 @@ public class BigramModel {
         }
         return ELEMENT_NOT_FOUND;
     }
-    
+
     public String[] buildVocabularyIndex(String fileName) throws IOException { // Question 1
         String[] buffer = new String[MAX_VOCABULARY_SIZE];
         int count = 0;
@@ -105,31 +107,48 @@ public class BigramModel {
                     }
                     if (indexOf(buffer, count, word) == ELEMENT_NOT_FOUND) {
                         buffer[count++] = word;
-                    if (count == MAX_VOCABULARY_SIZE) {
-                        return buffer;
+                        if (count == MAX_VOCABULARY_SIZE) {
+                            return buffer;
+                        }
                     }
-                    }
+                }
+            }
+
+            String[] vocabulary = new String[count];
+            System.arraycopy(buffer, 0, vocabulary, 0, count);
+            return vocabulary;
         }
     }
-
-        String[] vocabulary = new String[count];
-        System.arraycopy(buffer, 0, vocabulary, 0, count);
-        return vocabulary;
-        }
-    }
-
 
     /*
      * @post: mVocabulary = prev(mVocabulary)
+     * 
      * @post: mBigramCounts = prev(mBigramCounts)
      */
     public int[][] buildCountsArray(String fileName, String[] vocabulary) throws IOException { // Question 2
-        // TODO: implement
-        return null;
+        int n = vocabulary.length;
+        int[][] counts = new int[n][n];
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                int prev = ELEMENT_NOT_FOUND;
+                String[] tokens = line.trim().split("\\s+");
+                for (String token : tokens) {
+                    int cur = findIndex(vocabulary, normalizeWord(token));
+                    if (prev != ELEMENT_NOT_FOUND && cur != ELEMENT_NOT_FOUND) {
+                        counts[prev][cur]++;
+                    }
+                    prev = cur;
+                }
+            }
+        }
+        return counts;
     }
 
     /*
      * @pre: the method initModel was called (the language model is initialized)
+     * 
      * @pre: fileName is a legal file path
      */
     public void saveModel(String fileName) throws IOException { // Question 3
@@ -145,24 +164,31 @@ public class BigramModel {
 
     /*
      * @pre: sentence is in lowercase
+     * 
      * @pre: the method initModel was called (the language model is initialized)
+     * 
      * @pre: each two words in the sentence are separated with a single space
-     * @post: if sentence is probable, according to the model, $ret = true, else, $ret = false
+     * 
+     * @post: if sentence is probable, according to the model, $ret = true, else,
+     * $ret = false
      */
     public boolean isLegalSentence(String sentence) { // Question 5
         // TODO: implement
         return false;
     }
 
-    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     // Queries on the model - already implemented for you.
     // They start working once Questions 1 - 2 are done.
-    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
 
     /*
      * @pre: word is in lowercase
+     * 
      * @pre: the method initModel was called (the language model is initialized)
-     * @post: $ret = -1 if word is not in vocabulary, otherwise $ret = the index of word in vocabulary
+     * 
+     * @post: $ret = -1 if word is not in vocabulary, otherwise $ret = the index of
+     * word in vocabulary
      */
     public int getWordIndex(String word) {
         return findIndex(mVocabulary, word);
@@ -170,8 +196,11 @@ public class BigramModel {
 
     /*
      * @pre: word1, word2 are in lowercase
+     * 
      * @pre: the method initModel was called (the language model is initialized)
-     * @post: $ret = the count for the bigram <word1, word2>. if one of the words does not
+     * 
+     * @post: $ret = the count for the bigram <word1, word2>. if one of the words
+     * does not
      * exist in the vocabulary, $ret = 0
      */
     public int getBigramCount(String word1, String word2) {
@@ -185,8 +214,11 @@ public class BigramModel {
 
     /*
      * @pre: word is in lowercase, and is in mVocabulary
+     * 
      * @pre: the method initModel was called (the language model is initialized)
-     * @post: $ret = the word with the lowest vocabulary index that appears most frequently after word
+     * 
+     * @post: $ret = the word with the lowest vocabulary index that appears most
+     * frequently after word
      * (if a bigram starting with word was never seen, $ret will be null)
      */
     public String getMostFrequentProceeding(String word) {
@@ -202,7 +234,9 @@ public class BigramModel {
 
     /*
      * @pre: arr1.length = arr2.length
-     * @post: if arr1 or arr2 are only filled with zeros, $ret = -1, otherwise calculates CosineSim
+     * 
+     * @post: if arr1 or arr2 are only filled with zeros, $ret = -1, otherwise
+     * calculates CosineSim
      */
     public static double calcCosineSim(int[] arr1, int[] arr2) {
         double dot = 0;
@@ -221,8 +255,11 @@ public class BigramModel {
 
     /*
      * @pre: word is in vocabulary
+     * 
      * @pre: the method initModel was called (the language model is initialized)
-     * @post: $ret = w implies that w is the word with the largest cosineSimilarity(vector for word, vector for w)
+     * 
+     * @post: $ret = w implies that w is the word with the largest
+     * cosineSimilarity(vector for word, vector for w)
      * among all the other words in vocabulary (the lowest index wins a tie)
      */
     public String getClosestWord(String word) {
